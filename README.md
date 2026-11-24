@@ -1,78 +1,85 @@
 # Industrial Recovery Funding Decision Engine
 
-An institutional, API-first decision engine for automating and optimizing industrial recovery funding workflows.
+An institutional, API-first engine for automating and optimizing industrial recovery funding workflows.
 
 ## Purpose
 
-The engine is designed to integrate with existing federation, government, donor, or development-programme platforms without requiring replacement of their current systems.
+The engine integrates with existing federation, government, donor, or development-programme platforms without requiring replacement of their current systems.
 
 It transforms:
 
 ```text
 Factory Data
 + Recovery Application
-+ Funding Provider
-+ Funding Programme
++ Funding Provider / Programme Policy
 + Portfolio Strategy
 + Programme Constraints
         ↓
-Validation
+Application Intake & Validation
         ↓
-Eligibility
+Evaluation Run
+  ├─ Eligibility
+  ├─ Recovery Diagnosis
+  ├─ Intervention Matching
+  └─ Impact / Priority Estimation
         ↓
-Recovery Needs Diagnosis
-        ↓
-Intervention Matching
-        ↓
-Impact & Priority Assessment
+Candidate Factory–Intervention Set
         ↓
 Portfolio Optimization
         ↓
-Explainable Recommendation
+Recommendation Package
         ↓
 Human Review / Approval
         ↓
-Post-Funding Monitoring
+Funding Decision + Budget Commitment
         ↓
-Outcome Learning
+Monitoring & Outcomes
+        ↓
+Expected vs Actual Analysis
+        ↓
+Future Learning / Re-optimization
 ```
 
-## Core Engineering Principles
+## Non-Negotiable Engineering Principles
 
-1. **Module independence is mandatory.**
-2. **Every module must be extensible and replaceable.**
-3. **API-first and headless integration.**
-4. **Security and privacy by design.**
-5. **Offline-capable workflows for unstable connectivity.**
-6. **Human-in-the-loop for final funding decisions.**
-7. **Full auditability and versioning.**
-8. **Configuration over hard-coded programme rules.**
-9. **Automated tests and regression protection.**
-10. **Scalable architecture without premature microservices.**
+1. Module independence.
+2. Extensibility and replaceable implementations.
+3. Explicit, versioned contracts.
+4. API-first and headless integration.
+5. Security and privacy by design.
+6. Offline-capable field workflows with strict authority boundaries.
+7. Human-in-the-loop for final funding authority.
+8. Full auditability and reproducibility.
+9. Configuration over hard-coded programme policy.
+10. Automated contract, integration, regression and security tests.
+11. Scalable architecture without premature microservices.
 
-## Initial Architecture
+## Bounded Contexts
 
 The MVP starts as a **Modular Monolith with strict domain boundaries**.
 
-Planned modules:
+Primary contexts:
 
-- Factory
-- Funding Provider
-- Funding Programme
-- Portfolio Strategy
-- Recovery Application
-- Validation
-- Eligibility
-- Recovery Diagnosis
-- Intervention
-- Assessment
-- Optimization
-- Decision
-- Monitoring
-- Audit
-- Integration
+- Identity & Access
+- Factory Registry
+- Programme Catalogue & Policy
+- Application Intake & Validation
+- Evaluation Run
+- Portfolio Optimization
+- Decision & Governance
+- Monitoring & Outcomes
 
-Modules communicate through explicit contracts. A module must not depend on another module's internal implementation details or directly access another module's private persistence layer.
+Cross-cutting / edge capabilities:
+
+- Audit & Provenance
+- Integration Gateway
+- Offline Sync
+
+Future:
+
+- Model & Analytics
+
+Entities are not automatically modules. Cross-context communication occurs through published contracts, application services, immutable snapshots, or approved events.
 
 ## Decision Model
 
@@ -84,7 +91,7 @@ Simplified objective:
 maximize Total Expected Recovery Impact
 
 subject to:
-  Total Funding <= Available Budget
+  Total Funding + Existing Commitments <= Available Budget
   Eligibility Rules
   Maximum Funding per Factory
   Sector Constraints
@@ -94,36 +101,37 @@ subject to:
   Programme-Specific Constraints
 ```
 
+The optimization boundary is solver-neutral. Core contracts must not expose OR-Tools types.
+
 ## MVP Scope
 
 The first MVP includes:
 
-- Factory master data
-- Funding provider and programme configuration
-- Portfolio strategy
-- Recovery applications
+- Factory reference/master data
+- Programme policy configuration and versioning
+- Recovery applications and evidence metadata
 - Validation
 - Eligibility
 - Recovery-needs diagnosis
 - Intervention matching
-- Priority and impact assessment
+- Rule-based impact estimation
+- Candidate generation
 - Portfolio optimization
 - Scenario analysis
-- Explainable recommendations
+- Explainable recommendation package
 - Human review / override
-- Basic audit trail
+- Budget commitment record
+- Audit/provenance
 - Prototype post-funding monitoring
 
 ## Deferred Capabilities
-
-These are intentionally deferred until justified by data and operational needs:
 
 - Production-grade predictive ML
 - Causal inference
 - Multi-country deployment
 - Supply-chain graph optimization
-- Autonomous funding decisions
-- Payment/banking processing
+- Autonomous final funding decisions
+- Payment/banking execution
 - Full microservices deployment
 
 ## Technology Direction
@@ -134,17 +142,15 @@ These are intentionally deferred until justified by data and operational needs:
 - Frontend: React / PWA-capable
 - Deployment: Docker
 - Auth: OIDC / OAuth2 compatible
-- Testing: Unit + Contract + Integration + End-to-End + Regression
+- Testing: Unit + Contract + Integration + End-to-End + Regression + Security
 
-Technology choices may evolve, but module contracts and architectural boundaries must remain stable.
+Technology choices may evolve, but public contracts and module boundaries must remain stable.
 
-## Repository Status
-
-**Phase:** Architecture baseline and MVP definition.
-
-See:
+## Architecture References
 
 - `docs/architecture/enterprise-policies.md`
+- `docs/architecture/module-map.md`
+- `docs/architecture/contracts.md`
 - `docs/product/scope.md`
 - `docs/product/workflow.md`
 - `docs/data/data-model.md`
@@ -152,6 +158,6 @@ See:
 
 ## Non-Negotiable Rule
 
-> A change inside one module must not require unrelated modules to be rewritten.
+> A change inside one context must not require unrelated contexts to be rewritten.
 
 Any exception requires an explicit Architecture Decision Record (ADR).
