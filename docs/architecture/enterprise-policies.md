@@ -2,239 +2,269 @@
 
 ## Policy Status
 
-**Baseline:** v0.1  
+**Baseline:** v0.2  
 **Scope:** Entire Industrial Recovery Funding Decision Engine.
 
-These policies are mandatory unless superseded by an approved Architecture Decision Record (ADR).
+These policies are mandatory unless superseded by an approved ADR.
 
----
+## P-01 — Bounded Context Independence
 
-## P-01 — Module Independence
+Each bounded context owns its domain logic, application services, persistence access, and internal implementation.
 
-Each module must own its domain logic and internal implementation.
+A change inside one context must not force unrelated contexts to change.
 
-A change inside one module must not force unrelated modules to change.
+Prohibited by default:
 
-Modules communicate only through explicit contracts.
-
-### Prohibited
-
-- reading another module's private database tables directly
-- importing another module's infrastructure layer
+- direct reads/writes to another context's private tables
+- imports from another context's infrastructure internals
 - circular dependencies
-- sharing mutable internal state
-- duplicating another module's business rules
-
----
+- shared mutable domain state
+- duplicated policy logic across contexts
 
 ## P-02 — Extensibility
 
-Every major domain area must support future extension without rewriting the core.
+Major domain areas must support extension without core rewrites.
 
-Examples:
+Examples include new programme types, rules, strategies, interventions, optimizers, monitoring indicators, country packs, and future predictors.
 
-- new funding programmes
-- new eligibility rules
-- new portfolio strategies
-- new intervention types
-- new optimization algorithms
-- new monitoring indicators
-- future country/programme configurations
-
-Prefer registries, strategies, interfaces, configuration, and versioned contracts over large conditional blocks.
-
----
+Prefer interfaces, strategies, registries, configuration and versioned contracts over large conditional blocks.
 
 ## P-03 — Modular Monolith First
 
-The MVP will use a **Modular Monolith with strict boundaries**.
+The MVP uses a Modular Monolith with strict boundaries.
 
-Reason:
+The architecture must preserve the option to extract a context into a service later without changing its public contract unnecessarily.
 
-- lower operational complexity
-- faster delivery
-- easier local/offline development
-- simpler testing
-- preserves domain separation
+## P-04 — Contexts Are Not Entities
 
-Modules may later be extracted into independent services without changing their public contracts.
+Entities do not automatically become modules.
 
----
+Approved initial contexts:
 
-## P-04 — API First
+1. Identity & Access
+2. Factory Registry
+3. Programme Catalogue & Policy
+4. Application Intake & Validation
+5. Evaluation Run
+6. Portfolio Optimization
+7. Decision & Governance
+8. Monitoring & Outcomes
+
+Cross-cutting / edge capabilities:
+
+- Audit & Provenance
+- Integration Gateway
+- Offline Sync
+
+Future:
+
+- Model & Analytics
+
+## P-05 — API First
 
 The engine must not depend on one frontend.
 
-External integrations use versioned APIs.
+External integrations use authenticated, versioned APIs or approved event contracts.
 
-The existing host platform should be able to integrate without replacing its core system.
+## P-06 — Configuration Over Hard Coding
 
----
+Programme policy must be configuration-driven and versioned.
 
-## P-05 — Configuration Over Hard Coding
-
-Funding programme policies must be data/configuration driven.
-
-Do not hard-code:
+Do not hard-code programme-specific:
 
 - eligible sectors
 - funding limits
-- portfolio weights
-- priority objectives
-- risk thresholds
 - document requirements
+- portfolio weights
+- risk thresholds
 - fairness constraints
+- objective priorities
 
-Programme configuration must be versioned and auditable.
+Published policy versions are immutable. A change creates a new version.
 
----
+## P-07 — Immutable Decision Snapshots
 
-## P-06 — Security and Privacy by Design
+Every consequential evaluation or optimization run must reference immutable snapshots/hashes sufficient to reproduce the historical decision.
 
-Security/privacy review is mandatory for every module.
+At minimum capture:
 
-Sensitive data is minimized and access-controlled.
+- application input snapshot
+- programme policy version
+- constraint version
+- indicator definition version
+- impact estimator version
+- candidate-set hash/version
+- optimizer adapter/version
+- solver/runtime version
+- solver parameters
+- random seed when applicable
+- concurrency/thread setting when relevant
+- time limit/gap setting
+- explanation version
 
-Identity data should be separated from analytical data where feasible.
+## P-08 — Evaluation Run Orchestration
 
----
+Eligibility, diagnosis, matching and impact assessment are pipeline steps coordinated by an Evaluation Run.
 
-## P-07 — Offline-Capable Design
+Pipeline steps must expose stable contracts and must not query downstream modules directly.
 
-Critical field workflows must tolerate unstable connectivity.
+An Evaluation Run owns execution state, input snapshot reference, step results and version references.
 
-Offline operation uses:
+## P-09 — Replaceable Algorithms
 
-```text
-Encrypted local working cache
-→ queued local operations
-→ reconnect
-→ authenticated synchronization
-→ conflict detection
-→ authoritative server reconciliation
-```
+Workflow code must not depend directly on one solver or prediction library.
 
-Offline support must not weaken authorization or audit requirements.
-
----
-
-## P-08 — Auditability
-
-Every consequential decision must be reproducible.
-
-Store references to:
-
-- input snapshot/version
-- programme configuration version
-- rule version
-- optimization algorithm/version
-- model version when ML is used
-- user/actor
-- timestamp
-- explanation
-- override reason
-
----
-
-## P-09 — Versioned Contracts
-
-APIs and cross-module contracts are versioned when compatibility could break.
-
-Breaking changes require explicit migration strategy.
-
----
-
-## P-10 — Persistence Ownership
-
-Each module owns its data access.
-
-Cross-domain reporting should use approved read models, application services, or integration contracts instead of bypassing ownership boundaries.
-
----
-
-## P-11 — Human-in-the-Loop
-
-The engine recommends; authorized humans retain final funding authority.
-
-Automation may process routine cases, but exceptions and final approvals remain governed by policy and authorization.
-
----
-
-## P-12 — Replaceable Algorithms
-
-Business workflows must not depend directly on one solver or ML library.
-
-Examples:
+Required abstraction examples:
 
 ```text
-ImpactEstimator interface
+ImpactEstimator
   ├── RuleBasedImpactEstimator
   └── FutureMLImpactEstimator
 
-PortfolioOptimizer interface
-  ├── ORToolsOptimizer
-  └── FutureMILPOptimizer
+PortfolioOptimizer
+  ├── ORToolsOptimizerAdapter
+  └── FutureMILPOptimizerAdapter
 ```
 
----
+Optimization contracts must contain domain-neutral problem/candidate data, not OR-Tools objects.
 
-## P-13 — Testability
+## P-10 — Budget Integrity
 
-Architecture must support:
+The Decision & Governance context owns approved allocations and budget commitments.
 
-- unit tests
-- contract tests
-- integration tests
-- end-to-end tests
-- regression tests
-- security tests
+Optimization consumes a budget snapshot but does not directly mutate authoritative commitments.
 
-A module that cannot be tested independently is considered too tightly coupled.
+Concurrent approvals must not oversubscribe a programme budget.
 
----
+## P-11 — Security and Privacy by Design
 
-## P-14 — Observability
+Every context must define data classification, authorization scope and audit requirements.
 
-Production-capable modules must provide structured logs, metrics, trace/correlation identifiers, and actionable errors without leaking confidential data.
+Identity/PII should be separated from analytical data where feasible.
 
----
+## P-12 — Authorization Scope From Day One
 
-## P-15 — Failure Isolation
+RBAC alone is insufficient.
 
-A non-critical module failure should not corrupt the entire workflow.
+Authorization must combine role with resource scope such as:
 
-Where possible:
+- organization
+- programme
+- factory ownership/assignment
+- decision authority
 
-- operations are idempotent
-- retryable actions are explicit
-- failures are recorded
-- partial state is identifiable
-- unsafe continuation fails closed
+Fine-grained ABAC may evolve later, but ownership/programme scoping is mandatory from the MVP.
 
----
+## P-13 — Separation of Duties
 
-## P-16 — Data Portability
+High-impact policy changes and sensitive approvals must support four-eyes governance where configured.
 
-The system must support controlled import/export through documented formats and APIs to avoid vendor lock-in.
+At minimum, a user who authors a programme policy version must not be able to publish that same version alone when the deployment policy requires dual approval.
 
----
+## P-14 — Offline Authority Boundary
 
-## P-17 — No Premature AI
+Offline operation is for continuity, not independent funding authority.
 
-AI/ML is added only when justified by sufficient and appropriate outcome data.
+MVP offline capabilities may include:
 
-Rules and optimization remain valid first-class implementations.
+- draft application capture/update
+- queued attachments/evidence metadata
+- cached reference data
+- non-authoritative client-side validation
+- queued synchronization
 
----
+Authoritative actions require reconnect and server authorization:
 
-## P-18 — Architecture Gate
+- programme policy publication
+- eligibility finalization where it affects funding
+- portfolio optimization as official run
+- final approval/rejection
+- override
+- budget commitment
+
+## P-15 — Offline Conflict and Idempotency
+
+Offline writes must include client operation IDs/idempotency keys and base version references.
+
+Synchronization must detect stale versions and must not silently overwrite server changes.
+
+The server remains authoritative.
+
+## P-16 — Audit & Provenance
+
+Audit is cross-cutting and append-oriented.
+
+Business contexts emit safe events; they do not depend on audit internals.
+
+Decision-sensitive audit data must be tamper-evident using an approved append-only mechanism and separate write privileges.
+
+Audit records should use pseudonymous/internal references where possible.
+
+## P-17 — Data Retention and Privacy
+
+Retention rules must be configurable by deployment/programme.
+
+Audit immutability must not require permanent storage of unnecessary PII.
+
+PII and business audit references should be separable so data can be deleted/anonymized according to policy without destroying decision provenance.
+
+## P-18 — Persistence Ownership
+
+Each context owns its persistence access.
+
+Cross-context reporting uses read models, contracts, application services or events.
+
+## P-19 — Contract Versioning
+
+Breaking API or cross-context contract changes require explicit migration/compatibility strategy.
+
+## P-20 — Testability and Architecture Enforcement
+
+Required test classes:
+
+- unit
+- contract
+- integration
+- regression
+- end-to-end
+- security
+- authorization-scope
+- architecture boundary tests
+
+CI must include an automated architecture/import boundary check.
+
+## P-21 — Failure Isolation
+
+Operations should be idempotent where relevant.
+
+Retries, partial states and failures must be explicit.
+
+Unsafe continuation must fail closed.
+
+## P-22 — Observability
+
+Production-capable modules expose structured logs, metrics and correlation IDs without leaking confidential data.
+
+## P-23 — No Premature AI
+
+AI/ML is added only when appropriate outcome data exists.
+
+Rule-based estimation and mathematical optimization remain valid first-class implementations.
+
+## P-24 — Public Repository Safety
+
+A public repository must not contain real enterprise data, confidential donor/programme material, production secrets, credentials, internal security topology, or exploitable operational details.
+
+## P-25 — Architecture Gate
 
 A feature cannot be accepted if it:
 
-- violates module ownership
+- violates context ownership
 - creates unnecessary tight coupling
-- bypasses authorization
-- bypasses audit logging
-- hard-codes programme-specific policy into core logic
+- bypasses authorization scope
+- bypasses audit/provenance
+- hard-codes programme policy into core logic
 - cannot be regression-tested
+- breaks offline conflict guarantees
+- makes historical decisions non-reproducible
 - creates an irreversible dependency without an ADR
