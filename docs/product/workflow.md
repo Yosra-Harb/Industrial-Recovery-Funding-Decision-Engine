@@ -1,68 +1,95 @@
-# End-to-End Workflow
+# End-to-End Workflow v0.2
 
 ## Primary Data Flow
 
 ```text
-Factory Master Profile
+Factory Master Profile / Reference
         +
-Recovery Application
+Recovery Application + Evidence Metadata
         +
-Funding Provider
-        +
-Funding Programme
+Published Programme Policy Version
         +
 Portfolio Strategy
         +
-Programme Constraints
+Budget Snapshot
         ↓
-1. Data Validation
+Application Intake & Validation
         ↓
-2. Eligibility Screening
+Evaluation Run
+        ├─ Eligibility Step
+        ├─ Recovery Diagnosis Step
+        ├─ Intervention Matching Step
+        ├─ Indicator Generation Step
+        └─ Impact Estimation Step
         ↓
-3. Recovery Needs Diagnosis
+Versioned Candidate Factory–Intervention Set
         ↓
-4. Intervention Matching
+Portfolio Optimization Run
         ↓
-5. Feature / Indicator Generation
+Recommendation Package
         ↓
-6. Impact & Priority Assessment
+Human Review / Approval
         ↓
-7. Candidate Factory–Intervention Set
+Decision Record
         ↓
-8. Portfolio Optimization
+Budget Commitment
         ↓
-9. Explainable Recommendation
+Post-Funding Monitoring
         ↓
-10. Human Review / Approval
+Outcome Observations
         ↓
-11. Funding Decision Record
+Expected vs Actual Analysis
         ↓
-12. Post-Funding Monitoring
+Learning Dataset / Analytics
         ↓
-13. Expected vs Actual Analysis
+Future Predictive Models
         ↓
-14. Learning Dataset
-        ↓
-15. Future Predictive Models
-        ↓
-16. Future Re-optimization
+Future Re-optimization
 ```
 
 ## Automation Principle
 
 The intended operating model is **automation-first, exception-driven human review**.
 
-Routine cases should proceed automatically when policy permits.
+Routine cases may proceed automatically where programme policy allows.
 
-Human attention is prioritized for:
+Human attention is prioritized for incomplete evidence, conflicts, policy exceptions, high-risk/high-value cases, final governance approval and overrides.
 
-- incomplete evidence
-- conflicting data
-- policy exceptions
-- high-risk cases
-- high-value cases where required
-- final governance approval
-- authorized overrides
+## Evaluation Run
+
+An Evaluation Run is the authoritative orchestration record for the decision pipeline.
+
+It references:
+
+- immutable application snapshot
+- programme policy version
+- indicator definitions
+- estimator version
+- each step result and status
+
+Pipeline steps are replaceable behind contracts and must not access downstream implementation details.
+
+## Recommendation Package
+
+The recommendation package is solver-independent and contains:
+
+- selected/not-selected status
+- recommended intervention
+- recommended amount
+- reasons/evidence references
+- risk/impact indicators
+- optimization run reference
+- policy/version references
+
+The explanation layer consumes exported results and must not inspect solver internals directly.
+
+## Budget Authority
+
+Optimization proposes a portfolio against a budget snapshot.
+
+Only Decision & Governance creates authoritative Budget Commitments.
+
+This prevents concurrent approvals from oversubscribing the programme.
 
 ## State Model — Initial Draft
 
@@ -71,16 +98,37 @@ DRAFT
 → SUBMITTED
 → VALIDATING
 → INCOMPLETE | READY
-→ ELIGIBILITY_CHECK
+→ EVALUATING
 → INELIGIBLE | NEEDS_REVIEW | ELIGIBLE
-→ ASSESSMENT
+→ CANDIDATE_READY
 → OPTIMIZATION_READY
 → RECOMMENDED
 → COMMITTEE_REVIEW
 → APPROVED | REJECTED | DEFERRED
+→ COMMITTED
 → FUNDED
 → MONITORING
 → COMPLETED
 ```
 
-Every state transition that affects a funding decision must be auditable.
+Every consequential transition must be auditable.
+
+## Offline Authority Boundary
+
+Offline:
+
+- draft capture/edit
+- cached reference data
+- queued evidence metadata/uploads
+- non-authoritative local validation
+- queued sync
+
+Online authoritative only:
+
+- programme publication
+- official evaluation finalization
+- official optimization run
+- approval/rejection/override
+- budget commitment
+
+Offline operations must carry idempotency keys and base-version references for conflict detection.
