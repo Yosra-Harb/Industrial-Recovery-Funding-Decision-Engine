@@ -1,41 +1,55 @@
-# Product Scope
+# Product Scope v0.2
 
 ## Product Goal
 
-Automate the operational decision workflow for industrial recovery funding and optimize the allocation of a limited programme budget across eligible Factory–Intervention combinations.
+Automate industrial recovery funding decision workflows and optimize limited programme budgets across eligible Factory–Intervention combinations while preserving human authority and full reproducibility.
 
 ## MVP In Scope
 
 ### Inputs
 
-- Factory master profile/reference
-- Recovery application
-- Funding provider
-- Funding programme
-- Portfolio strategy
-- Programme constraints
-- Intervention catalogue
+- factory master reference
+- recovery application
+- evidence metadata
+- funding provider
+- published programme policy version
+- portfolio strategy
+- budget snapshot
+- intervention catalogue
 
 ### Automated Processing
 
-- completeness validation
-- data validation
+- completeness/data validation
 - eligibility screening
 - recovery-needs diagnosis
 - intervention matching
-- impact/priority assessment
+- indicator generation
+- rule-based impact estimation
 - candidate generation
 - constrained portfolio optimization
 - scenario comparison
 - explanation generation
 
-### Human Governance
+### Governance
 
 - review queue
 - approve/reject/defer
 - request more information
-- authorized override with mandatory reason
-- audit trail
+- override with mandatory reason
+- four-eyes publication/approval where configured
+- budget commitment protection
+- audit/provenance
+
+### Offline MVP
+
+- draft application capture/edit
+- cached reference data
+- queued evidence metadata
+- queued synchronization
+- conflict detection
+- idempotent replay
+
+Authoritative funding decisions remain online-only.
 
 ### Monitoring Prototype
 
@@ -52,21 +66,23 @@ Automate the operational decision workflow for industrial recovery funding and o
 - autonomous final funding decisions
 - money transfer/payment execution
 - banking ledger
-- production-grade ML trained on invented data
+- production-grade predictive ML
 - causal treatment-effect estimation
 - multi-country policy packs
 - advanced supply-chain graph optimization
 - full microservices deployment
+- official optimization/final approvals while offline
 
-## Success Criteria for MVP
-
-The MVP must demonstrate:
+## MVP Success Criteria
 
 1. end-to-end processing of a controlled dataset
-2. zero funding of explicitly ineligible cases
-3. no budget/constraint violation in accepted optimization results
-4. reproducible optimization runs
+2. zero selected ineligible cases
+3. no accepted budget/constraint violations
+4. historical decision reproducibility from recorded snapshots/versions
 5. explanations for consequential recommendations
-6. human override auditability
-7. module-level regression protection
-8. ability to change programme configuration without editing core business code
+6. auditable overrides
+7. no budget oversubscription under concurrent approval tests
+8. module-level regression protection
+9. programme policy changes without core code edits
+10. authorization scope tests for factory/programme/organization access
+11. safe offline sync with conflict detection and idempotency
