@@ -2,7 +2,7 @@
 
 ## Policy Status
 
-**Baseline:** v0.2  
+**Baseline:** v0.3  
 **Scope:** Entire Industrial Recovery Funding Decision Engine.
 
 These policies are mandatory unless superseded by an approved ADR.
@@ -268,3 +268,59 @@ A feature cannot be accepted if it:
 - breaks offline conflict guarantees
 - makes historical decisions non-reproducible
 - creates an irreversible dependency without an ADR
+
+
+---
+
+## P-26 — Multi-Tenant Isolation
+
+The same system may host multiple isolated tenants.
+
+Every tenant-owned business record includes `tenant_id`.
+
+Cross-tenant reads, writes, joins, exports and references are prohibited by default.
+
+Production-capable PostgreSQL deployments enforce tenant isolation with Row-Level Security in addition to application-level authorization.
+
+## P-27 — Security Architecture Gate
+
+Security review is mandatory for every feature.
+
+A feature must document authentication, authorization scope, tenant behavior, data classification, audit events, validation/abuse controls, offline implications and required security tests.
+
+Functional correctness alone is not sufficient for merge.
+
+## P-28 — No Implicit Trust
+
+No boundary is trusted merely because it is internal.
+
+External integrations, workers, offline clients, optimization jobs and bounded contexts receive only the minimum capabilities required.
+
+## P-29 — Fail Closed
+
+Security-sensitive failures must not silently degrade into weaker behavior.
+
+Missing tenant context, unresolved authorization, invalid decision hashes, stale authoritative data or unavailable budget integrity checks must block the operation.
+
+## P-30 — Tenant Isolation Beyond the Database
+
+Caches, queues, object storage, search indexes, exports, temporary files and offline stores must preserve tenant boundaries.
+
+## P-31 — Privileged Access
+
+Routine system administration does not imply permission to read tenant business data.
+
+Exceptional cross-tenant access requires an explicit break-glass mechanism and high-severity audit trail before production deployment.
+
+## P-32 — Security Verification
+
+CI and release processes must progressively enforce:
+
+- architecture-boundary tests
+- authorization-scope tests
+- tenant-isolation tests
+- dependency/secret scanning
+- static analysis
+- security regression tests
+
+Production/pilot readiness requires additional threat-model review and deployment-specific security validation.
