@@ -161,3 +161,14 @@ Technology choices may evolve, but public contracts and module boundaries must r
 > A change inside one context must not require unrelated contexts to be rewritten.
 
 Any exception requires an explicit Architecture Decision Record (ADR).
+
+
+## Multi-Tenant Security
+
+The same system is designed to support multiple institutions.
+
+A Tenant is the primary data-isolation workspace.
+
+Tenant business data is isolated using server-side authorization, tenant-aware data models, PostgreSQL Row-Level Security in production-capable deployments, and tenant-scoped cache/queue/object-storage/export rules.
+
+Cross-tenant access is denied by default.
