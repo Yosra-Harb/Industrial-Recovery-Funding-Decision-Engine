@@ -1,12 +1,8 @@
-# Security and Confidentiality Policy
-
-## Status
-
-Architecture baseline v0.1.
+# Security and Confidentiality Policy v0.2
 
 ## Security Objectives
 
-The engine may process confidential enterprise, funding, operational, and decision data. Security is therefore a design constraint, not a post-development feature.
+The engine may process confidential enterprise, funding, evidence and decision data.
 
 Mandatory principles:
 
@@ -18,114 +14,207 @@ Mandatory principles:
 - Defense in Depth
 - Secure Defaults
 - Full Auditability
+- Separation of Duties
 
 ## Authentication
 
-Production deployments must use a standards-based identity provider compatible with OIDC/OAuth2.
+Production deployments use a standards-based identity provider compatible with OIDC/OAuth2.
 
-The application must not implement custom password cryptography.
+Do not implement custom password cryptography.
+
+Service-to-service integration must use scoped machine identities, e.g. OAuth2 client credentials and/or mTLS according to deployment requirements.
 
 ## Authorization
 
-Authorization must be enforced server-side.
+Authorization is enforced server-side.
 
-Initial model: RBAC, with future ABAC support where programme, organization, geography, or data classification requires finer controls.
+The MVP uses:
 
-Examples of roles:
+**RBAC + mandatory resource scoping**
 
-- Factory Applicant
-- Federation Reviewer
-- Programme Manager
-- Committee Reviewer
-- Auditor
-- System Administrator
-- Read-Only Funder Observer
+Scopes may include:
 
-No role receives more permissions than required.
+- organization
+- programme
+- factory ownership/assignment
+- review queue
+- decision authority
 
-## Data Separation
+RBAC alone is not sufficient.
 
-Where feasible, identity/PII data must be separated from analytical and optimization data.
+Fine-grained ABAC may be added later if justified.
 
-The optimization layer should operate on internal identifiers and decision-relevant attributes rather than unnecessary personal information.
+## Separation of Duties
+
+Sensitive policy and decision operations must support four-eyes control where configured.
+
+Examples:
+
+- programme policy author cannot self-publish the same version
+- rule changes require approval
+- privileged system administration does not automatically grant business decision visibility
+- override authority is separate from ordinary review where policy requires it
+
+Conflict-of-interest declaration/checking must be supported for reviewers where required.
+
+## Data Separation and Classification
+
+Identity/PII should be separated from analytical data where feasible.
+
+Removing a name does not automatically make data non-sensitive; sector, geography and size may still re-identify a factory.
+
+Access control and export policy must follow data classification.
 
 ## Encryption
 
 Production requirements:
 
-- TLS for data in transit
-- Encryption at rest
-- Encrypted backups
-- Encrypted offline cache
-- No secrets committed to Git
-- Secret rotation supported
+- TLS in transit
+- encryption at rest
+- encrypted backups
+- encrypted offline cache
+- secret rotation
+- no secrets in Git
 
 ## Secrets
 
-Secrets must be provided through secure environment or secret-management infrastructure.
+Never commit passwords, API keys, database credentials, encryption keys, access tokens or production credential-bearing URLs.
 
-Never commit:
+## Programme and Rule Integrity
 
-- passwords
-- API keys
-- database credentials
-- encryption keys
-- access tokens
-- production URLs containing credentials
+Programme policy versions must be immutable once published.
 
-`.env.example` must contain names/placeholders only.
+Every policy version requires content hashing, author/approver provenance and publication timestamp.
+
+Unauthorized rule or weight changes are treated as security-sensitive events.
+
+## Decision Reproducibility
+
+Official optimization runs must record enough execution metadata to reproduce or explain historical results, including solver/runtime versions and parameters.
+
+Non-deterministic settings must be explicit.
 
 ## Audit Trail
 
-Security-sensitive and decision-sensitive events must be auditable, including:
+Decision/security-sensitive events must be recorded.
 
-- authentication events where appropriate
-- permission changes
-- application state changes
-- eligibility decisions
-- optimization runs
-- rule/configuration versions
-- human overrides
-- funding approvals/rejections
-- data exports
-- administrative changes
+Audit design requirements:
 
-Audit records must be tamper-resistant and should not contain unnecessary sensitive payloads.
+- append-oriented
+- tamper-evident
+- separate write privileges from ordinary business tables
+- pseudonymous/internal actor/entity references where possible
+- chained/event hashes or equivalent integrity control
+- retention policy separate from PII retention
+
+## Privacy and Retention
+
+Auditability does not justify indefinite storage of unnecessary PII.
+
+Deployments must define retention periods.
+
+Identity data and audit/provenance references should be separable to allow deletion/anonymization where policy/law requires without destroying decision provenance.
 
 ## Offline Security
 
-Offline functionality must:
+Offline MVP supports only limited non-authoritative workflows.
 
-- cache only minimum required data
-- encrypt local data
-- expire cached data where appropriate
-- queue writes safely
-- prevent silent conflict overwrites
-- re-authorize sensitive operations after reconnect when required
-- treat the server as the authoritative source after synchronization
+Allowed:
+
+- draft data capture/edit
+- minimum cached reference data
+- queued evidence metadata/uploads
+- local advisory validation
+- queued synchronization
+
+Authoritative operations require online server authorization:
+
+- programme policy publication
+- official evaluation finalization
+- official portfolio optimization
+- approval/rejection
+- override
+- budget commitment
+
+Offline writes must carry idempotency keys and base-version references.
+
+No silent conflict overwrite is allowed.
+
+## Device Risk
+
+Offline cache is assumed vulnerable if the endpoint itself is compromised.
+
+Therefore:
+
+- minimize cached data
+- use platform-supported non-exportable key material where feasible
+- expire/clear sensitive cache
+- require re-authentication after defined conditions
+- support administrative session/token revocation
+
+Remote device wipe is deployment-dependent and not assumed for the MVP.
+
+## API and Partner Security
+
+Integrations must support:
+
+- scoped service identities
+- rate limiting
+- idempotency keys
+- replay protection where applicable
+- signed webhooks when webhooks are used
+- request size limits
+- schema validation
+- authorization on every resource operation
+
+## Evidence / Upload Security
+
+Document uploads require:
+
+- allow-listed content types
+- size limits
+- malware scanning before trusted use
+- randomized storage identifiers
+- no direct execution
+- classification metadata
+- integrity hash
+- access-controlled retrieval
 
 ## Logging
 
-Logs must never contain raw secrets or unnecessary sensitive enterprise data.
+Logs must not contain raw secrets or unnecessary confidential data.
 
-Structured logs should use identifiers, event types, correlation IDs, and safe metadata.
+Use structured event types, IDs, correlation IDs and safe metadata.
 
-## Vulnerability Handling
-
-Security defects are treated as priority defects.
+## Supply Chain
 
 Before production pilot:
 
 - dependency scanning
-- static analysis
-- authentication/authorization tests
-- API abuse tests
-- backup/restore test
-- threat-model review
 - secret scanning
+- static analysis
+- locked dependency versions
+- SBOM generation
+- container/image scanning where applicable
 
-must be completed.
+## Backup and Recovery
+
+Before production pilot define and test:
+
+- RPO
+- RTO
+- encrypted backup process
+- restore procedure
+- recovery authorization
+
+## Incident Response
+
+Before production pilot define incident ownership, containment, credential revocation, evidence preservation and stakeholder notification process.
 
 ## Public Repository Rule
 
-No real factory data, donor confidential material, production configuration, or security-sensitive implementation detail may be committed to a public repository.
+No real factory data, confidential donor/programme material, production configuration, credentials, internal deployment secrets, or exploitable security topology may be committed to a public repository.
+
+## Vulnerability Reporting
+
+A public security contact/process should be published before external/public deployment.
