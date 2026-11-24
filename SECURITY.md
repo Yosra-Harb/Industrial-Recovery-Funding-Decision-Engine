@@ -1,4 +1,4 @@
-# Security and Confidentiality Policy v0.2
+# Security and Confidentiality Policy v0.3
 
 ## Security Objectives
 
@@ -23,6 +23,25 @@ Production deployments use a standards-based identity provider compatible with O
 Do not implement custom password cryptography.
 
 Service-to-service integration must use scoped machine identities, e.g. OAuth2 client credentials and/or mTLS according to deployment requirements.
+
+## Multi-Tenant Security Boundary
+
+The system is multi-tenant.
+
+A tenant is the primary data-isolation boundary.
+
+Tenant business data is isolated by:
+
+- server-validated tenant membership
+- resource-scoped authorization
+- tenant_id on tenant-owned records
+- PostgreSQL RLS for production-capable deployments
+- tenant-aware cache/queue/object-storage/export keys
+- negative tenant-isolation tests
+
+The client cannot authorize its own tenant context.
+
+Routine administrators do not automatically receive access to tenant business data.
 
 ## Authorization
 
@@ -218,3 +237,40 @@ No real factory data, confidential donor/programme material, production configur
 ## Vulnerability Reporting
 
 A public security contact/process should be published before external/public deployment.
+
+
+## Security Architecture Gate
+
+Every feature requires a security contract before completion:
+
+- authentication
+- tenant/resource authorization
+- data classification
+- encryption/storage
+- audit events
+- input validation/abuse limits
+- offline/cache behavior
+- failure mode
+- security tests
+
+A feature that is functionally correct but lacks this definition is incomplete.
+
+## Fail-Closed Requirements
+
+Authoritative operations are blocked when:
+
+- tenant context is absent or invalid
+- authorization cannot be confirmed
+- required policy/snapshot integrity checks fail
+- official funding action is attempted offline
+- budget integrity cannot be guaranteed
+
+## Row-Level Security
+
+Production-capable PostgreSQL deployments use RLS for tenant-owned tables.
+
+Runtime database roles must not be superusers and must not have BYPASSRLS.
+
+Tenant context must be transaction-local when connection pooling is used.
+
+RLS supplements, but does not replace, application authorization.
