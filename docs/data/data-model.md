@@ -1,10 +1,58 @@
-# Domain Data Model v0.2
+# Domain Data Model v0.3
 
 This is a domain model, not the final SQL schema.
 
 Entities are grouped by bounded context. Persistence ownership follows context boundaries.
 
+## Multi-Tenant Rule
+
+The system supports multiple institutions with strict isolation.
+
+A **Tenant** is the primary operational/security boundary. An **Organization** is a legal/institutional participant.
+
+Every business entity below is tenant-scoped unless explicitly described as global control-plane data.
+
+Cross-tenant access is denied by default.
+
 ## 1. Identity & Access
+
+### Organization
+
+Global control-plane record.
+
+- organization_id
+- organization_name
+- organization_type
+- status
+- external_reference
+
+### Tenant
+
+Global control-plane record identifying an isolated workspace.
+
+- tenant_id
+- tenant_name
+- tenant_type
+- status
+
+### TenantOrganizationMembership
+
+- tenant_id
+- organization_id
+- relationship_code
+- valid_from
+- valid_to
+
+### ActorTenantMembership
+
+- membership_id
+- actor_id
+- tenant_id
+- organization_id
+- status
+- valid_from
+- valid_to
+
 
 Identity details may live in an external identity provider.
 
@@ -373,3 +421,12 @@ Factory
 Published programme policy versions and historical decision input snapshots are immutable.
 
 The final SQL schema must preserve context ownership and must not create cross-context foreign-key coupling that defeats module independence without explicit justification.
+
+
+## Tenant Ownership Principle
+
+Factory, Programme, Application, Evaluation, Optimization, Decision, Monitoring and tenant audit records all carry `tenant_id`.
+
+Tenant-local relationships must not point to records owned by another tenant.
+
+A joint institutional programme should be represented by a dedicated tenant/workspace rather than arbitrary cross-tenant sharing.
