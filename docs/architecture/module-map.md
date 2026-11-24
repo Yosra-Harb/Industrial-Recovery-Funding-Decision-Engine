@@ -1,10 +1,14 @@
-# Recommended Module Map v0.1
+# Recommended Module Map v0.2
 
 ## Business Contexts
 
 ### 1. Identity & Access
 
-Owns internal actor references, authorization assignments and access-scope evaluation.
+Owns the global control plane for Organization, Tenant, actor identity references, tenant memberships, authorization assignments and access-scope evaluation.
+
+Tenant is the primary data-isolation boundary.
+
+Business contexts do not invent their own tenancy model.
 
 Does not own external identity-provider credentials.
 
@@ -114,3 +118,12 @@ Offline client ─► Offline Sync ─► application contracts
 - business contexts → Audit storage internals
 - UI → direct database
 - offline client → authoritative approval/commitment without server authorization
+
+
+## Multi-Tenant Boundary
+
+All business contexts execute inside an explicit validated tenant context.
+
+No business context may perform cross-tenant queries or joins.
+
+A shared programme between institutions uses a dedicated joint tenant with explicit organization memberships.
